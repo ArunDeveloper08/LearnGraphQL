@@ -8,21 +8,42 @@ const { default: axios } = require("axios");
 async function startServer() {
   const app = express();
   const server = new ApolloServer({
-   
-   typeDefs: `
+    typeDefs: `
+      
+     type User {
+    id:ID!
+    name:String!
+    username:String!
+    email:String!
+    phone:String!
+    website:String!
+   }
+
       type Todo {
         id: ID!
         title: String!
-        completed: Boolean
+        completed: Boolean    
+        user:User
       }
+
       type Query {
         getTodos: [Todo]
+        getAllUsers:[User]
+        getUser(id:ID!) : User
       }
     `,
     resolvers: {
+      Todo:{
+      user : async(todo)=>
+     (await axios.get(`https://jsonplaceholder.typicode.com/users/${todo.id}`)).data,
+      },
       Query: {
         getTodos: async () =>
-          (await axios.get("https://jsonplaceholder.typicode.com/todos"))?.data,  
+          (await axios.get("https://jsonplaceholder.typicode.com/todos"))?.data,
+        getAllUsers: async () =>
+          (await axios.get("https://jsonplaceholder.typicode.com/users")).data,
+          getUser : async(parent ,{id})=>
+          (await axios.get(`https://jsonplaceholder.typicode.com/users/${id}`)).data
       },
     },
   });
@@ -30,10 +51,9 @@ async function startServer() {
   app.use(bodyParser.json());
   app.use(cors());
   await server.start();
- 
   app.use("/graphql", expressMiddleware(server));
 
-  const PORT =  8000;
+  const PORT = 8000;
   app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
   });
