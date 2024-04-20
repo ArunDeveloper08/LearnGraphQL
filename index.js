@@ -8,8 +8,7 @@ const { default: axios } = require("axios");
 async function startServer() {
   const app = express();
   const server = new ApolloServer({
-    typeDefs: `
-      
+     typeDefs: `
      type User {
     id:ID!
     name:String!
@@ -33,16 +32,20 @@ async function startServer() {
       }
     `,
     resolvers: {
-      Todo:{
-      user : async(todo)=>
-     (await axios.get(`https://jsonplaceholder.typicode.com/users/${todo.id}`)).data,
+      Todo: {
+        user: async (todo) => {
+          const { data } = await axios.get(
+            `https://jsonplaceholder.typicode.com/users/${todo.userId}`
+          );
+          return data;
+        },
       },
       Query: {
         getTodos: async () =>
           (await axios.get("https://jsonplaceholder.typicode.com/todos"))?.data,
         getAllUsers: async () =>
           (await axios.get("https://jsonplaceholder.typicode.com/users")).data,
-          getUser : async(parent ,{id})=>
+          getUser : async(parent , {id})=>
           (await axios.get(`https://jsonplaceholder.typicode.com/users/${id}`)).data
       },
     },
